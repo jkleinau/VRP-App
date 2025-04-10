@@ -4,8 +4,6 @@
 
 An interactive web application for visualizing and solving Vehicle Routing Problems (VRP) with multiple constraints. This project consists of a React frontend for intuitive problem setup and visualization, and a Python backend for solving complex routing scenarios using Google OR-Tools.
 
-![VRP-App Screenshot](https://via.placeholder.com/800x450.png?text=VRP-App+Screenshot)
-
 ## Features
 
 ### Visualization
