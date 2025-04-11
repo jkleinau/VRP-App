@@ -5,7 +5,6 @@ import {
   Typography,
   Chip,
   Input,
-  Button,
   IconButton,
   Stack,
   FormControl,
@@ -113,13 +112,13 @@ const SkillConfig: React.FC<SkillConfigProps> = ({
         </Stack>
       </FormControl>
 
-      <Sheet sx={{ mb: 2, maxHeight: 300, overflow: 'auto', borderRadius: 'md' }}>
+      <Sheet sx={{ mb: 2, maxHeight: 300, overflow: 'hidden', borderRadius: 'md' }}>
         <Table stickyHeader>
           <thead>
             <tr>
               <th style={{ width: '30%' }}>Skill Name</th>
               <th>Assigned To Vehicle</th>
-              <th style={{ width: '10%' }}>Actions</th>
+              <th style={{ width: '15%' }}>Del</th>
             </tr>
           </thead>
           <tbody>
