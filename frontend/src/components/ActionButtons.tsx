@@ -3,8 +3,6 @@ import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
 import React from 'react'
 import { SolverResult, ScenarioData, Route } from '../types'
-// Optional: Import CSS module if you created one
-// import styles from './Components.module.css';
 
 interface ActionButtonsProps {
   onClearNodes: () => void
@@ -12,7 +10,7 @@ interface ActionButtonsProps {
   onLoad: () => void
   onClearRoutes: () => void
   setStatusMessage: (message: string) => void
-  setRoutes: (routes: Route[]) => void
+  setRoutes: (routes: Route[], maxDistance?: number, totalDistance?: number) => void
   getCurrentScenarioData: () => ScenarioData
 }
 
@@ -27,34 +25,31 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
 }) => {
   const mutation = useMutation<SolverResult, Error, ScenarioData>({
     mutationFn: async (scenarioData: ScenarioData) => {
-      // Make sure backend URL and port are correct
       const response = await axios.post<SolverResult>('http://localhost:5002/api/solve', scenarioData)
       return response.data
     },
     onMutate: () => {
       setStatusMessage('Solving VRP...')
-      setRoutes([]) // Clear previous routes visually
+      setRoutes([], undefined, undefined) 
     },
     onSuccess: (data) => {
       if (data.status === 'success' && data.routes) {
-        setRoutes(data.routes)
+        setRoutes(data.routes, data.max_distance, data.total_distance)
         setStatusMessage(
           `Solution found! Max Distance: ${data.max_distance?.toFixed(1) ?? 'N/A'}. ${data.message ?? ''}`
         )
       } else {
-        // Handle success case with no routes (e.g. only depot) or specific messages
-        setRoutes([])
+        setRoutes([], undefined, undefined)
         setStatusMessage(data.message || 'Solver finished without routes.')
       }
     },
     onError: (error) => {
-      // Try to get specific message from backend error if available
       let errorMessage = error.message
       if (axios.isAxiosError(error) && error.response?.data?.message) {
         errorMessage = error.response.data.message
       }
       setStatusMessage(`Error: ${errorMessage}`)
-      setRoutes([])
+      setRoutes([], undefined, undefined)
     }
   })
   const handleSolveClick = () => {
@@ -62,10 +57,12 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     console.log('Solve button clicked.')
     console.log('Data being sent:', currentData)
     if (currentData.nodes.length < 1) {
-      /* ... */ return
+      setStatusMessage('Error: No nodes defined')
+      return
     }
     if (currentData.nodes.length > 1 && currentData.num_vehicles < 1) {
-      /* ... */ return
+      setStatusMessage('Error: Need at least one vehicle to serve customer nodes')
+      return
     }
     console.log('Attempting to call mutation.mutate...')
     mutation.mutate(currentData)

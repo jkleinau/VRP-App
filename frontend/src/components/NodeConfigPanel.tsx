@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { VRPNode } from '../types'; // [cite: uploaded:src/types.ts]
+import { VRPNode } from '../types';
 import { 
   Button, 
   Divider, 
@@ -12,8 +12,7 @@ import {
   Box,
   Sheet
 } from '@mui/joy';
-// Optional: Import CSS module if you created one
-// import styles from './Components.module.css';
+
 
 interface NodeConfigPanelProps {
   node: VRPNode;
@@ -23,10 +22,8 @@ interface NodeConfigPanelProps {
 }
 
 const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node, availableSkills, updateNode, onClose }) => {
-  // Use local state to manage form edits before updating the main state
   const [editableNode, setEditableNode] = useState<VRPNode>(node);
 
-  // Update local state if the selected node prop changes
   useEffect(() => {
     setEditableNode(node);
   }, [node]);
@@ -38,7 +35,6 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node, availableSkills
         if (name === 'x' || name === 'y') {
             return { ...prev, [name]: parseFloat(value) || 0 };
         }
-        // Basic handling for time window - needs more robust input (e.g., two number inputs)
         if (name === 'time_window_start' || name === 'time_window_end') {
              const win = prev.time_window || [0,0];
              const index = name === 'time_window_start' ? 0 : 1;
@@ -47,7 +43,7 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node, availableSkills
         }
         if (type === 'checkbox') {
              const { checked } = event.target as HTMLInputElement;
-             const skill = name; // Assuming checkbox name is the skill name
+             const skill = name;
              const currentSkills = prev.required_skills || [];
              let newSkills: string[];
              if(checked) {
@@ -63,12 +59,10 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node, availableSkills
   };
 
   const handleSave = () => {
-    updateNode(editableNode); // Send the updated node data back to App
-    // Optionally close after save: onClose();
+    updateNode(editableNode);
   };
 
   return (
-    // Add 'node-config-panel' class to potentially exclude from panning
     <Sheet 
       className="node-config-panel" 
       sx={{ 

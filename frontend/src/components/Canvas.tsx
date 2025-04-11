@@ -2,8 +2,7 @@
 import React, { useRef, MouseEvent, useCallback } from 'react'
 import { VRPNode, Route } from '../types'
 import { Tooltip } from '@mui/joy'
-// Import Tooltip from Joy UI if you prefer richer tooltips over basic browser ones
-// import Tooltip from '@mui/joy/Tooltip';
+
 
 interface CanvasProps {
   nodes: VRPNode[]
@@ -20,15 +19,15 @@ interface CanvasProps {
 const SCALE_FACTOR = 5
 const NODE_RADIUS = 8
 const DEPOT_SIZE = 12
-const RING_WIDTH = 2 // Width of the time window ring
+const RING_WIDTH = 2 
 
 // --- Define Node Colors ---
 const NODE_COLORS = {
-  DEPOT: { fill: '#DC143C', stroke: '#8B0000' }, // Crimson Red
-  NO_SKILLS: { fill: '#1E90FF', stroke: '#0000CD' }, // Dodger Blue
-  HAS_SKILLS: { fill: '#9370DB', stroke: '#483D8B' }, // Medium Purple
-  TIME_WINDOW: { stroke: '#FF7E65' }, // Lime Green for time window ring
-  SELECTED: { fill: '#FFA500', stroke: '#FF8C00' } // Orange
+  DEPOT: { fill: '#DC143C', stroke: '#8B0000' },
+  NO_SKILLS: { fill: '#1E90FF', stroke: '#0000CD' }, 
+  HAS_SKILLS: { fill: '#9370DB', stroke: '#483D8B' }, 
+  TIME_WINDOW: { stroke: '#FF7E65' }, 
+  SELECTED: { fill: '#FFA500', stroke: '#FF8C00' }
 }
 // --- ---
 
@@ -43,7 +42,6 @@ const Canvas: React.FC<CanvasProps> = ({
   height
 }) => {
   const svgRef = useRef<SVGSVGElement>(null)
-  // Track next node ID (assuming App.tsx handles the main state)
   const nextNodeId = nodes.reduce((maxId, node) => Math.max(maxId, node.id), 0) + 1
 
   const vrpToSvgCoords = useCallback(
@@ -85,14 +83,14 @@ const Canvas: React.FC<CanvasProps> = ({
     if (!clickedExistingNode) {
       const { x, y } = svgToVrpCoords(svgX, svgY)
       const newNode: VRPNode = {
-        id: nextNodeId, // Generate ID locally for immediate feedback
+        id: nextNodeId, 
         x: parseFloat(x.toFixed(1)),
         y: parseFloat(y.toFixed(1)),
         is_depot: false,
         required_skills: [],
         time_window: null
       }
-      onAddNode(newNode) // Let App component manage the actual state update
+      onAddNode(newNode)
       onSelectNode(newNode)
     }
   }
@@ -133,7 +131,7 @@ const Canvas: React.FC<CanvasProps> = ({
     '#008080',
     '#E6BEFF',
     '#9A6324'
-  ] // More distinct colors
+  ] 
 
   return (
     <svg
@@ -205,7 +203,6 @@ const Canvas: React.FC<CanvasProps> = ({
             tooltipLines.push(`Required Skills: ${node.required_skills.join(', ')}`);
         }
 
-        // For Joy UI Tooltip, use React elements for proper formatting
         const tooltipContent = (
             <div>
                 {tooltipLines.map((line, i) => (
@@ -218,7 +215,6 @@ const Canvas: React.FC<CanvasProps> = ({
         return (
           <Tooltip key={`tooltip-${node.id}`} title={tooltipContent} placement='top' variant='outlined' arrow>
             <g key={node.id} style={{ cursor: 'pointer' }}>
-              {/* <title>{tooltipText}</title> SVG Standard Tooltip */}
               {node.is_depot ? (
                 <rect
                   x={cx - DEPOT_SIZE / 2}

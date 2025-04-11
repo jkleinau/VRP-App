@@ -10,21 +10,20 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { VRPNode, Route, ScenarioData } from './types'
 import ControlPanel from './components/ControlPanel'
 import NodeConfigPanel from './components/NodeConfigPanel'
-import Canvas from './components/Canvas' // Assuming Canvas component exists
+import Canvas from './components/Canvas'
 import StatusBar from './components/StatusBar'
-// Load example data if needed
-import exampleScenario from './assets/basic example.json' // Adjust path if needed
+import RouteSummaryPanel from './components/RouteSummaryPanel'
+import exampleScenario from './assets/basic example.json'
 import ActionButtons from './components/ActionButtons'
 
 const queryClient = new QueryClient()
 
 function App() {
-  // Ensure the loaded data matches the ScenarioData type
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const initialScenario: ScenarioData = {
-    nodes: exampleScenario.nodes as VRPNode[], // Type assertion
+    nodes: exampleScenario.nodes as VRPNode[], 
     num_vehicles: exampleScenario.num_vehicles,
     available_skills: exampleScenario.available_skills,
-    // Ensure vehicle_skills keys are strings if needed by backend/solver
     vehicle_skills: Object.fromEntries(
       Object.entries(exampleScenario.vehicle_skills).map(([k, v]) => [String(k), v as string[]])
     )
@@ -37,6 +36,9 @@ function App() {
   const [selectedNode, setSelectedNode] = useState<VRPNode | null>(initialScenario.nodes[0] || null)
   const [routes, setRoutes] = useState<Route[]>([])
   const [statusMessage, setStatusMessage] = useState<string>('Ready')
+  const [maxDistance, setMaxDistance] = useState<number | undefined>(undefined)
+  const [totalDistance, setTotalDistance] = useState<number | undefined>(undefined)
+  const [showRouteSummary, setShowRouteSummary] = useState<boolean>(false)
 
   // --- Callbacks for ControlPanel ---
   const handleAddNode = useCallback((newNode: VRPNode) => {
@@ -51,7 +53,8 @@ function App() {
         setSelectedNode(null)
       }
       setStatusMessage(`Removed Node ${nodeIdToRemove}`)
-      setRoutes([]) // Clear routes when nodes change
+      setRoutes([]) 
+      setShowRouteSummary(false)
     },
     [selectedNode]
   )
@@ -63,14 +66,14 @@ function App() {
 
   const handleUpdateNode = useCallback((updatedNode: VRPNode) => {
     setNodes((prevNodes) => prevNodes.map((node) => (node.id === updatedNode.id ? updatedNode : node)))
-    setSelectedNode(updatedNode) // Keep it selected
+    setSelectedNode(updatedNode) 
     setStatusMessage(`Updated Node ${updatedNode.id}`)
-    setRoutes([]) // Clear routes when node constraints change
+    setRoutes([])
+    setShowRouteSummary(false)
   }, [])
 
   const handleNumVehiclesChange = useCallback((count: number) => {
     setNumVehicles(count)
-    // Adjust vehicleSkills if count decreases
     setVehicleSkills((prevSkills) => {
       const newSkills: { [key: string]: string[] } = {}
       for (let i = 0; i < count; i++) {
@@ -79,14 +82,14 @@ function App() {
       return newSkills
     })
     setStatusMessage(`Number of vehicles set to ${count}`)
-    setRoutes([]) // Clear routes
+    setRoutes([]) 
+    setShowRouteSummary(false)
   }, [])
 
   const handleSkillsChange = useCallback(
     (newAvailableSkills: string[], newVehicleSkills: { [key: string]: string[] }) => {
       setAvailableSkills(newAvailableSkills)
       setVehicleSkills(newVehicleSkills)
-      // Optionally update nodes if a removed skill was required
       setNodes((prevNodes) =>
         prevNodes.map((node) => ({
           ...node,
@@ -94,7 +97,8 @@ function App() {
         }))
       )
       setStatusMessage(`Skills updated`)
-      setRoutes([]) // Clear routes
+      setRoutes([]) 
+      setShowRouteSummary(false)
     },
     []
   )
@@ -102,14 +106,20 @@ function App() {
   const handleClearRoutes = useCallback(() => {
     setRoutes([])
     setStatusMessage('Routes cleared.')
+    setShowRouteSummary(false)
+    setMaxDistance(undefined)
+    setTotalDistance(undefined)
   }, [])
 
   const handleClearAll = useCallback(() => {
     const depot = nodes.find((n) => n.is_depot)
-    setNodes(depot ? [depot] : []) // Keep only depot
+    setNodes(depot ? [depot] : [])
     setSelectedNode(null)
     setRoutes([])
     setStatusMessage('Scenario cleared.')
+    setShowRouteSummary(false)
+    setMaxDistance(undefined)
+    setTotalDistance(undefined)
     // Reset other settings if desired
     // setNumVehicles(initialScenario.num_vehicles);
     // setAvailableSkills(initialScenario.available_skills);
@@ -125,7 +135,11 @@ function App() {
     setSelectedNode(null)
     setRoutes([])
     setStatusMessage('Loaded example scenario.')
+    setShowRouteSummary(false)
+    setMaxDistance(undefined)
+    setTotalDistance(undefined)
   }, [initialScenario])
+
 
   // --- Current Scenario Data for Solver ---
   const getCurrentScenarioData = (): ScenarioData => ({
@@ -149,22 +163,32 @@ function App() {
             onSkillsChange={handleSkillsChange}
             selectedNode={selectedNode}
             onUpdateNode={handleUpdateNode}
-            onSolve={() => {
-              /* Triggered by useMutation */
-            }} // Let react-query handle solve
+            onSolve={() => {}}
             onClearRoutes={handleClearRoutes}
             onClearAll={handleClearAll}
             onLoadExample={handleLoadExample}
-            getCurrentScenarioData={getCurrentScenarioData} // Pass function to get data
-            setStatusMessage={setStatusMessage} // Pass setter for status
-            setRoutes={setRoutes} // Pass setter for routes
+            getCurrentScenarioData={getCurrentScenarioData}
+            setStatusMessage={setStatusMessage}
+            setRoutes={setRoutes}
           />
-          {selectedNode && (
+
+          {selectedNode && !showRouteSummary && (
             <NodeConfigPanel
               node={selectedNode}
               availableSkills={availableSkills}
               updateNode={handleUpdateNode}
               onClose={() => setSelectedNode(null)}
+            />
+          )}
+
+          {routes.length > 0 && (
+            <RouteSummaryPanel
+              routes={routes}
+              nodes={nodes}
+              vehicleSkills={vehicleSkills}
+              maxDistance={maxDistance}
+              totalDistance={totalDistance}
+              onClose={() => setShowRouteSummary(false)}
             />
           )}
 
@@ -176,10 +200,10 @@ function App() {
                 flexGrow: 1,
                 p: 1,
                 borderRadius: 'sm',
-                display: 'flex', // Added for centering canvas if needed
-                justifyContent: 'center', // Added
-                alignItems: 'center', // Added
-                overflow: 'hidden' // Prevent canvas overflow issues
+                display: 'flex',
+                justifyContent: 'center', 
+                alignItems: 'center',
+                overflow: 'hidden' 
               }}
             >
               <ActionButtons
@@ -190,7 +214,12 @@ function App() {
                 onLoad={handleLoadExample}
                 onClearRoutes={handleClearRoutes}
                 setStatusMessage={setStatusMessage}
-                setRoutes={setRoutes}
+                setRoutes={(routes, maxDist, totalDist) => {
+                  setRoutes(routes)
+                  setMaxDistance(maxDist)
+                  setTotalDistance(totalDist)
+                  setShowRouteSummary(routes.length > 0)
+                }}
                 getCurrentScenarioData={getCurrentScenarioData}
               />
               {/* --- Canvas Component --- */}
@@ -199,9 +228,9 @@ function App() {
                 routes={routes}
                 selectedNodeId={selectedNode?.id ?? null}
                 onAddNode={handleAddNode}
-                onRemoveNode={handleRemoveNode} // Pass remove handler
-                onSelectNode={handleSelectNode} // Pass select handler
-                width={800} // Example dimensions
+                onRemoveNode={handleRemoveNode} 
+                onSelectNode={handleSelectNode} 
+                width={800} 
                 height={600}
               />
             </Sheet>

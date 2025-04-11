@@ -13,7 +13,6 @@ import SkillConfig from './SkillConfig'
 import { VRPNode, VehicleSkills, ScenarioData, Route } from '../types'
 
 interface ControlPanelProps {
-  // ... (props remain the same)
   numVehicles: number
   onNumVehiclesChange: (count: number) => void
   availableSkills: string[]
@@ -39,7 +38,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 }) => {
   const [collapsed, setCollapsed] = useState(false)
 
-  // Use consistent spacing for the main Stack and Dividers
   return (
     <Box
       sx={{
