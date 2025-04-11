@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { VRPNode } from '../types'; // [cite: uploaded:src/types.ts]
+import { 
+  Button, 
+  Divider, 
+  Stack, 
+  Typography, 
+  Input, 
+  FormControl, 
+  FormLabel, 
+  Checkbox, 
+  Box,
+  Sheet
+} from '@mui/joy';
 // Optional: Import CSS module if you created one
 // import styles from './Components.module.css';
 
@@ -57,60 +69,105 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node, availableSkills
 
   return (
     // Add 'node-config-panel' class to potentially exclude from panning
-    <div className="node-config-panel">
-      <h3>Node {editableNode.id} Config</h3>
-      <button onClick={onClose} className="close-button">X</button>
-      <div>
-        <label>X:</label>
-        <input name="x" type="number" value={editableNode.x} onChange={handleChange} />
-      </div>
-      <div>
-        <label>Y:</label>
-        <input name="y" type="number" value={editableNode.y} onChange={handleChange} />
-      </div>
-       <div>
-        <label>Is Depot:</label>
-        {/* Typically Depots might not be editable? Display only? */}
-        <span>{editableNode.is_depot ? 'Yes' : 'No'}</span>
-      </div>
-       {/* Basic Time Window Example - Enhance this UI */}
-      <div>
-        <label>Time Window:</label>
-        <input
-            name="time_window_start"
-            type="number"
-            placeholder="Start"
-            value={editableNode.time_window?.[0] ?? ''}
-            onChange={handleChange}
-            disabled={editableNode.is_depot} // Often depots don't have TWs
-         />
-        <input
-            name="time_window_end"
-            type="number"
-            placeholder="End"
-            value={editableNode.time_window?.[1] ?? ''}
-            onChange={handleChange}
-            disabled={editableNode.is_depot}
-         />
-      </div>
-      <div>
-        <h4>Required Skills</h4>
-         {availableSkills.map(skill => (
-             <div key={skill}>
-                 <input
-                     type="checkbox"
-                     id={`skill-${skill}`}
-                     name={skill} // Use skill name as input name for checkbox handling
-                     checked={editableNode.required_skills?.includes(skill) || false}
-                     onChange={handleChange}
-                     disabled={editableNode.is_depot} // Often depots don't have skills
-                 />
-                 <label htmlFor={`skill-${skill}`}>{skill}</label>
-             </div>
-         ))}
-      </div>
-      <button onClick={handleSave}>Update Node</button>
-    </div>
+    <Sheet 
+      className="node-config-panel" 
+      sx={{ 
+        padding: 3, 
+        borderRadius: 'md', 
+        boxShadow: 'md',
+        position: 'absolute', 
+        top: 10, 
+        right: 10, 
+        zIndex: 1000, 
+        width: 300,
+        maxHeight: '90vh',
+        overflow: 'auto'
+      }}
+    >
+      <Typography 
+        level="title-lg" 
+        endDecorator={
+          <Button 
+            size='sm' 
+            onClick={onClose} 
+            variant='soft' 
+            color='danger' 
+            className="close-button"
+          >
+            X
+          </Button>
+        } 
+      >
+        Node {editableNode.id} Config
+      </Typography>
+      
+      <Divider sx={{ my: 2 }} />
+      <Stack spacing={2}>
+        {/* Node coordinates display */}
+        <Sheet variant="outlined" sx={{ p: 1, borderRadius: 'sm' }}>
+          <Stack direction="row" spacing={1} justifyContent="space-between">
+        <Typography level="body-sm">
+          <strong>X:</strong> {editableNode.x.toFixed(1)}
+        </Typography>
+        <Typography level="body-sm">
+          <strong>Y:</strong> {editableNode.y.toFixed(1)}
+        </Typography>
+        <Typography level="body-sm" sx={{ 
+          fontWeight: editableNode.is_depot ? 'bold' : 'normal',
+          color: editableNode.is_depot ? 'primary.main' : 'neutral.main'
+        }}>
+          {editableNode.is_depot ? '🏠 Depot' : '📦 Node'}
+        </Typography>
+          </Stack>
+        </Sheet>
+        <FormControl>
+          <FormLabel>Time Window:</FormLabel>
+          <Stack direction="row" spacing={1}>
+            <Input
+              name="time_window_start"
+              type="number"
+              placeholder="Start"
+              value={editableNode.time_window?.[0] ?? ''}
+              onChange={handleChange}
+              disabled={editableNode.is_depot}
+            />
+            <Input
+              name="time_window_end"
+              type="number"
+              placeholder="End"
+              value={editableNode.time_window?.[1] ?? ''}
+              onChange={handleChange}
+              disabled={editableNode.is_depot}
+            />
+          </Stack>
+        </FormControl>
+        
+        <Box>
+          <Typography level="title-sm" sx={{ mb: 1 }}>Required Skills</Typography>
+          <Stack spacing={1}>
+            {availableSkills.map(skill => (
+              <Checkbox
+                key={skill}
+                label={skill}
+                name={skill}
+                checked={editableNode.required_skills?.includes(skill) || false}
+                onChange={handleChange}
+                disabled={editableNode.is_depot}
+              />
+            ))}
+          </Stack>
+        </Box>
+        
+        <Button
+          variant="solid"
+          color="primary"
+          onClick={handleSave}
+          sx={{ mt: 1 }}
+        >
+          Update Node
+        </Button>
+      </Stack>
+    </Sheet>
   );
 };
 

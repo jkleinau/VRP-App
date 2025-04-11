@@ -1,35 +1,36 @@
-// frontend/src/components/StatusBar.tsx
 import React from 'react';
-import Sheet from '@mui/joy/Sheet';
-import Typography from '@mui/joy/Typography';
-import { keyframes } from '@emotion/react';
+import { Sheet, Typography, Box } from '@mui/joy';
 
 interface StatusBarProps {
   message: string;
 }
 
-// Simple fade-in animation for new messages
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
-`;
-
 const StatusBar: React.FC<StatusBarProps> = ({ message }) => {
-  // Use a key based on the message to re-trigger animation on change
   return (
     <Sheet
-      variant="outlined"
+      variant="soft"
+      color="neutral"
       sx={{
-        p: 1,
-        borderRadius: 'sm',
-        minHeight: '40px', // Ensure consistent height
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        p: 1.5,
         display: 'flex',
-        alignItems: 'center',
+        justifyContent: 'space-between',
+        zIndex: 1000,
+        boxShadow: '0px -1px 3px rgba(0,0,0,0.1)'
       }}
     >
-      <Typography key={message} sx={{ animation: `${fadeIn} 0.5s ease-out` }}>
-        {message}
+      <Typography level="body-sm">
+        {message || 'Ready'}
       </Typography>
+      
+      <Box>
+        <Typography level="body-sm">
+          VRP Solver App
+        </Typography>
+      </Box>
     </Sheet>
   );
 };

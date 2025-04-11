@@ -1,48 +1,63 @@
 // frontend/src/components/VehicleConfig.tsx
 import React from 'react';
-import Box from '@mui/joy/Box';
-import FormControl from '@mui/joy/FormControl';
-import FormLabel from '@mui/joy/FormLabel';
-import Slider from '@mui/joy/Slider';
-import Typography from '@mui/joy/Typography';
-import Stack from '@mui/joy/Stack';
+import {
+  Box,
+  Typography,
+  Slider,
+  Input,
+  FormControl,
+  FormLabel,
+  Stack
+} from '@mui/joy';
 
 interface VehicleConfigProps {
   numVehicles: number;
   onNumVehiclesChange: (count: number) => void;
 }
 
-const VehicleConfig: React.FC<VehicleConfigProps> = ({
-  numVehicles,
-  onNumVehiclesChange,
-}) => {
-  const handleSliderChange = (_event: Event, newValue: number | number[]) => {
+const VehicleConfig: React.FC<VehicleConfigProps> = ({ numVehicles, onNumVehiclesChange }) => {
+  const handleSliderChange = (event: Event, newValue: number | number[]) => {
     onNumVehiclesChange(newValue as number);
   };
 
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value === '' ? 0 : Number(event.target.value);
+    onNumVehiclesChange(value);
+  };
+
   return (
-    // Add some padding/margin if needed, e.g., sx={{ mb: 2 }}
     <Box>
-      <Typography level="title-md" sx={{ mb: 1.5 }}> {/* Increased bottom margin */}
-        Vehicle Configuration
-      </Typography>
-      <FormControl>
-        <FormLabel>Number of Vehicles</FormLabel>
-        <Stack spacing={2} direction="row" sx={{ alignItems: 'center', mt: 0.5 }}> {/* Consistent top margin */}
+      <Typography level="title-md" sx={{ mb: 2 }}>Vehicles</Typography>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <FormControl sx={{ width: '80%' }}>
+          <FormLabel>Number of Vehicles</FormLabel>
           <Slider
             aria-label="Number of vehicles"
             value={numVehicles}
             onChange={handleSliderChange}
-            valueLabelDisplay="auto"
+            min={0}
+            max={10}
             step={1}
             marks
-            min={1}
-            max={10}
-            sx={{ flexGrow: 1 }}
+            valueLabelDisplay="auto"
           />
-          <Typography sx={{ minWidth: '2ch', textAlign: 'right' }}>{numVehicles}</Typography>
-        </Stack>
-      </FormControl>
+        </FormControl>
+        <FormControl sx={{ width: '20%' }}>
+          <FormLabel>Value</FormLabel>
+          <Input
+            value={numVehicles}
+            onChange={handleInputChange}
+            type="number"
+            slotProps={{
+              input: {
+                min: 0,
+                max: 10,
+                step: 1,
+              }
+            }}
+          />
+        </FormControl>
+      </Stack>
     </Box>
   );
 };

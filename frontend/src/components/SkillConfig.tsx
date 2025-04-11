@@ -1,145 +1,173 @@
 // frontend/src/components/SkillConfig.tsx
-// (Imports remain the same)
 import React, { useState } from 'react';
-import Box from '@mui/joy/Box';
-import Button from '@mui/joy/Button';
-import Checkbox from '@mui/joy/Checkbox';
-import FormControl from '@mui/joy/FormControl';
-import FormLabel from '@mui/joy/FormLabel';
-import Input from '@mui/joy/Input';
-import List from '@mui/joy/List';
-import ListItem from '@mui/joy/ListItem';
-import Typography from '@mui/joy/Typography';
-import Stack from '@mui/joy/Stack';
-import IconButton from '@mui/joy/IconButton';
-import Sheet from '@mui/joy/Sheet';
-import Chip from '@mui/joy/Chip';
-import Divider from '@mui/joy/Divider'; // Import Divider
+import {
+  Box,
+  Typography,
+  Chip,
+  Input,
+  Button,
+  IconButton,
+  Stack,
+  FormControl,
+  FormLabel,
+  Table,
+  Sheet
+} from '@mui/joy';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { VehicleSkills } from '../types';
 
 interface SkillConfigProps {
-  // ... (props remain the same)
-   availableSkills: string[];
-   vehicleSkills: { [key: string]: string[] };
-   numVehicles: number;
-   onSkillsChange: (newAvailableSkills: string[], newVehicleSkills: { [key: string]: string[] }) => void;
+  availableSkills: string[];
+  vehicleSkills: VehicleSkills;
+  numVehicles: number;
+  onSkillsChange: (newAvailableSkills: string[], newVehicleSkills: VehicleSkills) => void;
 }
 
 const SkillConfig: React.FC<SkillConfigProps> = ({
-   availableSkills,
-   vehicleSkills,
-   numVehicles,
-   onSkillsChange,
+  availableSkills,
+  vehicleSkills,
+  numVehicles,
+  onSkillsChange
 }) => {
-  const [newSkill, setNewSkill] = useState('');
+  const [newSkill, setNewSkill] = useState<string>('');
 
-  // ... (handler functions remain the same)
-   const handleAddSkill = () => {
-       const trimmedSkill = newSkill.trim();
-       if (trimmedSkill && !availableSkills.includes(trimmedSkill)) {
-         const updatedAvailable = [...availableSkills, trimmedSkill];
-         onSkillsChange(updatedAvailable, vehicleSkills);
-         setNewSkill('');
-       } else if (availableSkills.includes(trimmedSkill)) {
-          console.warn(`Skill "${trimmedSkill}" already exists.`);
-          setNewSkill('');
-       }
-   };
+  const handleSkillInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewSkill(e.target.value);
+  };
 
-   const handleDeleteSkill = (skillToDelete: string) => {
-       const updatedAvailable = availableSkills.filter(s => s !== skillToDelete);
-       const updatedVehicleSkills: { [key: string]: string[] } = {};
-       for (const vehicleId in vehicleSkills) {
-          updatedVehicleSkills[vehicleId] = vehicleSkills[vehicleId].filter(s => s !== skillToDelete);
-       }
-       onSkillsChange(updatedAvailable, updatedVehicleSkills);
-   };
+  const handleAddSkill = () => {
+    if (newSkill && !availableSkills.includes(newSkill)) {
+      const updatedSkills = [...availableSkills, newSkill];
+      
+      // Add the new skill to the vehicleSkills object for each vehicle
+      const updatedVehicleSkills = { ...vehicleSkills };
+      for (let i = 0; i < numVehicles; i++) {
+        const vehicleId = i + 1;
+        if (!updatedVehicleSkills[vehicleId]) {
+          updatedVehicleSkills[vehicleId] = [];
+        }
+        // By default, new skills are not assigned to existing vehicles
+      }
+      
+      onSkillsChange(updatedSkills, updatedVehicleSkills);
+      setNewSkill('');
+    }
+  };
 
-   const handleVehicleSkillToggle = (vehicleId: string, skill: string, checked: boolean) => {
-       const currentSkills = vehicleSkills[vehicleId] || [];
-       let updatedSkills: string[];
-       if (checked) {
-           updatedSkills = Array.from(new Set([...currentSkills, skill]));
-       } else {
-           updatedSkills = currentSkills.filter(s => s !== skill);
-       }
-       const updatedVehicleSkills = { ...vehicleSkills, [vehicleId]: updatedSkills };
-       onSkillsChange(availableSkills, updatedVehicleSkills);
-   };
+  const handleRemoveSkill = (skillToRemove: string) => {
+    const updatedSkills = availableSkills.filter(skill => skill !== skillToRemove);
+    
+    // Remove the skill from all vehicles
+    const updatedVehicleSkills: VehicleSkills = {};
+    for (let i = 0; i < numVehicles; i++) {
+      const vehicleId = i + 1;
+      if (vehicleSkills[vehicleId]) {
+        updatedVehicleSkills[vehicleId] = vehicleSkills[vehicleId].filter(
+          skill => skill !== skillToRemove
+        );
+      }
+    }
+    
+    onSkillsChange(updatedSkills, updatedVehicleSkills);
+  };
 
+  const handleSkillToggle = (vehicleId: number, skill: string) => {
+    const updatedVehicleSkills = { ...vehicleSkills };
+    
+    if (!updatedVehicleSkills[vehicleId]) {
+      updatedVehicleSkills[vehicleId] = [];
+    }
+    
+    const hasSkill = updatedVehicleSkills[vehicleId].includes(skill);
+    
+    if (hasSkill) {
+      updatedVehicleSkills[vehicleId] = updatedVehicleSkills[vehicleId].filter(s => s !== skill);
+    } else {
+      updatedVehicleSkills[vehicleId] = [...updatedVehicleSkills[vehicleId], skill];
+    }
+    
+    onSkillsChange(availableSkills, updatedVehicleSkills);
+  };
 
   return (
     <Box>
-      <Typography level="title-md" sx={{ mb: 1.5 }}>Skills Configuration</Typography>
-
-      {/* Group for Adding and Listing Skills */}
-      <Stack spacing={2} sx={{ mb: 2 }}>
-        <FormControl>
-          <FormLabel>Add New Skill</FormLabel>
-          <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
-            <Input
-              placeholder="e.g., refrigeration"
-              value={newSkill}
-              onChange={(e) => setNewSkill(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleAddSkill(); }}
-              sx={{ flexGrow: 1 }}
-            />
-            <Button onClick={handleAddSkill} disabled={!newSkill.trim()}>Add</Button>
-          </Stack>
-        </FormControl>
-
-        <FormControl>
-           <FormLabel>Available Skills</FormLabel>
-           {availableSkills.length > 0 ? (
-               <List size="sm" sx={{ maxWidth: 300, mt: 0.5 }}> {/* Added mt */}
-                   {availableSkills.map(skill => (
-                       <ListItem
-                           key={skill}
-                           endAction={
-                               <IconButton aria-label={`Delete skill ${skill}`} size="sm" color="danger" variant="plain" onClick={() => handleDeleteSkill(skill)}>X</IconButton>
-                           }
-                           sx={{py: 0.5}} // Adjust vertical padding
-                       >
-                           {skill}
-                       </ListItem>
-                   ))}
-               </List>
-           ) : (
-               <Typography level="body-sm" sx={{ mt: 0.5 }}>No skills defined yet.</Typography>
-           )}
-       </FormControl>
-      </Stack>
-
-      <Divider sx={{ mb: 2 }}/> {/* Divider before assignment section */}
-
-      {/* Vehicle Skill Assignment */}
-      <FormControl>
-        <FormLabel>Assign Skills to Vehicles</FormLabel>
-        {availableSkills.length > 0 ? (
-          <Stack spacing={1.5} sx={{ mt: 0.5 }}> {/* Added mt */}
-            {Array.from({ length: numVehicles }, (_, i) => String(i)).map(vehicleId => (
-              <Sheet key={`vehicle-${vehicleId}`} variant="outlined" sx={{ p: 1.5, borderRadius: 'sm' }}>
-                <Typography level="title-sm" sx={{ mb: 1 }}>Vehicle {vehicleId}</Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap> {/* Added useFlexGap */}
-                  {availableSkills.map(skill => (
-                    <Checkbox
-                      key={`${vehicleId}-${skill}`}
-                      label={skill}
-                      size="sm"
-                      checked={vehicleSkills[vehicleId]?.includes(skill) ?? false}
-                      onChange={(e) => handleVehicleSkillToggle(vehicleId, skill, e.target.checked)}
-                    />
-                  ))}
-                  {(!vehicleSkills[vehicleId] || vehicleSkills[vehicleId].length === 0) && (
-                       <Chip size="sm" variant='outlined' color='neutral' disabled>No skills assigned</Chip>
-                   )}
-                </Stack>
-              </Sheet>
-            ))}
-          </Stack>
-        ) : (
-           <Typography level="body-sm" sx={{ mt: 0.5 }}>Define skills above to assign them.</Typography>
-        )}
+      <Typography level="title-md" sx={{ mb: 2 }}>Skills Configuration</Typography>
+      
+      <FormControl sx={{ mb: 2 }}>
+        <FormLabel>Add a new skill</FormLabel>
+        <Stack direction="row" spacing={1}>
+          <Input
+            placeholder="New skill name"
+            value={newSkill}
+            onChange={handleSkillInputChange}
+            sx={{ flexGrow: 1 }}
+          />
+          <IconButton 
+            onClick={handleAddSkill} 
+            disabled={!newSkill || availableSkills.includes(newSkill)}
+            color="primary"
+          >
+            <AddIcon />
+          </IconButton>
+        </Stack>
       </FormControl>
+
+      <Sheet sx={{ mb: 2, maxHeight: 300, overflow: 'auto', borderRadius: 'md' }}>
+        <Table stickyHeader>
+          <thead>
+            <tr>
+              <th style={{ width: '30%' }}>Skill Name</th>
+              <th>Assigned To Vehicle</th>
+              <th style={{ width: '10%' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {availableSkills.map(skill => (
+              <tr key={skill}>
+                <td>{skill}</td>
+                <td>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {Array.from({ length: numVehicles }, (_, i) => i + 1).map(vehicleId => {
+                      const hasSkill = vehicleSkills[vehicleId]?.includes(skill) || false;
+                      return (
+                        <Chip
+                          key={vehicleId}
+                          variant={hasSkill ? "solid" : "outlined"}
+                          color={hasSkill ? "primary" : "neutral"}
+                          onClick={() => handleSkillToggle(vehicleId, skill)}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          {vehicleId}
+                        </Chip>
+                      );
+                    })}
+                  </Box>
+                </td>
+                <td>
+                  <IconButton 
+                    size="sm" 
+                    variant="plain" 
+                    color="danger" 
+                    onClick={() => handleRemoveSkill(skill)}
+                  >
+                    <DeleteOutlineIcon />
+                  </IconButton>
+                </td>
+              </tr>
+            ))}
+            {availableSkills.length === 0 && (
+              <tr>
+                <td colSpan={3}>
+                  <Typography level="body-sm" textAlign="center" sx={{ py: 2 }}>
+                    No skills added yet
+                  </Typography>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </Sheet>
     </Box>
   );
 };
