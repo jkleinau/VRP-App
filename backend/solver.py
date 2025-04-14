@@ -3,7 +3,6 @@ import math
 import numpy as np
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
-import copy # Although deepcopy isn't explicitly used here, it's good practice for complex dicts
 
 def calculate_distance_matrix(nodes):
     """Calculates the Euclidean distance matrix between nodes."""
@@ -14,20 +13,19 @@ def calculate_distance_matrix(nodes):
         for j in range(i + 1, num_nodes):
             node_i = nodes[i]
             node_j = nodes[j]
-            # Scale coordinates to avoid floating point issues with ortools integer distances
             dist = int(math.sqrt((node_i['x'] - node_j['x'])**2 + (node_i['y'] - node_j['y'])**2) * 100)
             distance_matrix[i][j] = dist
             distance_matrix[j][i] = dist
-    return distance_matrix.tolist() # Convert numpy array to list of lists
+    return distance_matrix.tolist() 
 
 def solve_vrp(data):
     """Solves the VRP problem using Google OR-Tools."""
     try:
         nodes = data['nodes']
         num_vehicles = data['num_vehicles']
-        vehicle_skills = data.get('vehicle_skills', {}) # { '0': ['skill1'], ... }
+        vehicle_skills = data.get('vehicle_skills', {})
         available_skills = data.get('available_skills', [])
-        depot_index = 0 # Assuming the first node is always the depot
+        depot_index = 0 
 
          # --- Data Validation ---
         if not nodes:
@@ -64,26 +62,25 @@ def solve_vrp(data):
         transit_callback_index = routing.RegisterTransitCallback(distance_callback)
         routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
 
-        # --- Add Constraints (Add more as needed based on requirements) ---
 
         # Distance Dimension (Example)
         routing.AddDimension(
             transit_callback_index,
             0,      # No slack
-            300000, # Vehicle maximum travel distance (scaled by 100) - adjust as needed
+            300000, # Vehicle maximum travel distance (scaled by 100)
             True,   # Start cumul to zero
             "Distance",
         )
         distance_dimension = routing.GetDimensionOrDie("Distance")
-        distance_dimension.SetGlobalSpanCostCoefficient(100) # Penalize total distance
+        distance_dimension.SetGlobalSpanCostCoefficient(100) 
 
-        # Time Window Dimension (if time windows are added to nodes)
+
         has_time_windows = any(node.get('time_window') for node in nodes)
         if has_time_windows:
             routing.AddDimension(
                 transit_callback_index,
-                3000,  # Allow wait time (scaled) - adjust
-                300000, # Max time (scaled) - adjust
+                3000,  # Allow wait time (scaled) 
+                300000, # Max time (scaled)
                 False, # Don't force start cumul to zero
                 "Time"
             )
@@ -97,17 +94,15 @@ def solve_vrp(data):
                     time_dimension.CumulVar(index).SetRange(start_time, end_time)
 
 
-        # Skill Constraints (if skills are added)
         has_skills_requirement = any(node.get('required_skills') for node in nodes)
         if has_skills_requirement and available_skills:
-             # Check feasibility first
              for node_idx, node in enumerate(nodes):
                  required = set(node.get('required_skills', []))
                  if not required or node.get('is_depot'):
                      continue
                  can_serve = False
                  for v_id in range(num_vehicles):
-                     v_skills = set(vehicle_skills.get(str(v_id), [])) # Ensure keys are strings if coming from JSON
+                     v_skills = set(vehicle_skills.get(str(v_id), [])) 
                      if required.issubset(v_skills):
                          can_serve = True
                          break
@@ -127,8 +122,6 @@ def solve_vrp(data):
                          valid_vehicles.append(v_id)
 
                 index = manager.NodeToIndex(node_idx)
-                # Important: RoutingModel.VehicleVar() returns the vehicle *variable*,
-                # not the assigned vehicle index directly. Use SetValues to restrict possibilities.
                 routing.VehicleVar(index).SetValues(valid_vehicles)
 
 
@@ -149,7 +142,7 @@ def solve_vrp(data):
         if solution:
             routes = []
             max_route_distance = 0
-            total_distance = solution.ObjectiveValue() # If using GlobalSpanCostCoefficient
+            total_distance = solution.ObjectiveValue() 
 
             for vehicle_id in range(or_data["num_vehicles"]):
                 vehicle_route = []
@@ -157,27 +150,23 @@ def solve_vrp(data):
                 route_distance = 0
                 while not routing.IsEnd(index):
                     node_index = manager.IndexToNode(index)
-                    # Only add customer nodes to the route list if needed,
-                    # or add all including start/end depot based on frontend needs
-                    vehicle_route.append(nodes[node_index]['id']) # Add node ID
+                    vehicle_route.append(nodes[node_index]['id']) 
                     previous_index = index
                     index = solution.Value(routing.NextVar(index))
                     route_distance += routing.GetArcCostForVehicle(
                         previous_index, index, vehicle_id
                     )
-                # Add final depot node ID
                 final_node_index = manager.IndexToNode(index)
                 vehicle_route.append(nodes[final_node_index]['id'])
 
                 routes.append(vehicle_route)
                 max_route_distance = max(route_distance, max_route_distance)
 
-            # Divide distances by scaling factor for display
             return {
                 "status": "success",
                 "routes": routes,
                 "max_distance": max_route_distance / 100.0,
-                "total_distance": total_distance / 100.0 # Objective usually scaled
+                "total_distance": total_distance / 100.0
             }
         else:
             return {"status": "error", "message": "No solution found."}

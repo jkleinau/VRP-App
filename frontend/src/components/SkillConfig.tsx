@@ -42,7 +42,7 @@ const SkillConfig: React.FC<SkillConfigProps> = ({
       // Add the new skill to the vehicleSkills object for each vehicle
       const updatedVehicleSkills = { ...vehicleSkills };
       for (let i = 0; i < numVehicles; i++) {
-        const vehicleId = i + 1;
+        const vehicleId = i;
         if (!updatedVehicleSkills[vehicleId]) {
           updatedVehicleSkills[vehicleId] = [];
         }
@@ -60,7 +60,7 @@ const SkillConfig: React.FC<SkillConfigProps> = ({
     // Remove the skill from all vehicles
     const updatedVehicleSkills: VehicleSkills = {};
     for (let i = 0; i < numVehicles; i++) {
-      const vehicleId = i + 1;
+      const vehicleId = i ;
       if (vehicleSkills[vehicleId]) {
         updatedVehicleSkills[vehicleId] = vehicleSkills[vehicleId].filter(
           skill => skill !== skillToRemove
@@ -127,7 +127,7 @@ const SkillConfig: React.FC<SkillConfigProps> = ({
                 <td>{skill}</td>
                 <td>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {Array.from({ length: numVehicles }, (_, i) => i + 1).map(vehicleId => {
+                    {Array.from({ length: numVehicles }, (_, i) => i).map(vehicleId => {
                       const hasSkill = vehicleSkills[vehicleId]?.includes(skill) || false;
                       return (
                         <Chip

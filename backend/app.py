@@ -11,7 +11,7 @@ CORS(app)
 
 @app.route('/api/test', methods=['GET'])
 def handle_test():
-    print("--- /api/test endpoint hit ---") # Add a log here
+    print("--- /api/test endpoint hit ---") 
     return jsonify({"message": "CORS test successful!"}), 200
 
 
@@ -22,17 +22,13 @@ def handle_solve():
 
     data = request.get_json()
 
-    # Basic validation (more can be added)
     if not data or 'nodes' not in data or 'num_vehicles' not in data:
          return jsonify({"status": "error", "message": "Missing required data: nodes, num_vehicles"}), 400
 
-    # Call the solver function
     result = solve_vrp(data)
 
-    # Return the result from the solver
     status_code = 200 if result.get("status") == "success" else 400 if result.get("status") == "error" else 500
     return jsonify(result), status_code
 
 if __name__ == '__main__':
-    # Use port 5000 for the backend server
     app.run(debug=True, port=5002)
