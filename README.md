@@ -2,6 +2,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
+![VRP-App Screenshot](UI_Screenshot.png)
+*Screenshot of the VRP-App showing route visualization and configuration panels*
+
 An interactive web application for visualizing and solving Vehicle Routing Problems (VRP) with multiple constraints. This project consists of a React frontend for intuitive problem setup and visualization, and a Python backend for solving complex routing scenarios using Google OR-Tools.
 
 ## Features
