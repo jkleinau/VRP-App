@@ -6,7 +6,6 @@ from solver import solve_vrp
 app = Flask(__name__)
 # Configure CORS for development (allow requests from React dev server)
 # For production, restrict the origin more specifically
-# NEW Line (Allow All):
 CORS(app)
 
 @app.route('/api/test', methods=['GET'])
