@@ -4,12 +4,12 @@ export interface VRPNode {
     x: number;
     y: number;
     is_depot: boolean;
-    time_window?: [number, number] | null; // Optional: [start, end]
-    required_skills?: string[];           // Optional
+    time_window?: [number, number] | null;
+    required_skills?: string[];
   }
   
   export type VehicleSkills = {
-    [key: string]: string[]; // vehicle_id (as string): list of skills
+    [key: string]: string[]; 
   };
   
   export interface ScenarioData {
@@ -19,12 +19,12 @@ export interface VRPNode {
     vehicle_skills: VehicleSkills;
   }
   
-  export type Route = number[]; // Array of node IDs
+  export type Route = number[];
   
   export interface SolverResult {
     status: "success" | "error";
     routes?: Route[];
     max_distance?: number;
     total_distance?: number;
-    message?: string; // Error or info message
+    message?: string; 
   }
